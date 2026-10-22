@@ -8,7 +8,7 @@ import './styles.css';
 const oktaAuth = new OktaAuth({
   issuer: import.meta.env.VITE_OKTA_ISSUER,
   clientId: import.meta.env.VITE_OKTA_CLIENT_ID,
-  redirectUri: window.location.origin + '/login/callback',
+  redirectUri: window.location.origin + import.meta.env.BASE_URL + 'login/callback',
   scopes: ['openid', 'profile', 'email'],
   pkce: true,
 });
@@ -42,8 +42,12 @@ function Home() {
 
 function App() {
   const navigate = useNavigate();
-  const restoreOriginalUri = async (_oktaAuth, originalUri) =>
-    navigate(toRelativeUrl(originalUri || '/', window.location.origin), { replace: true });
+  // BrowserRouter has a basename, so navigate with the path relative to it.
+  const restoreOriginalUri = async (_oktaAuth, originalUri) => {
+    const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+    const rel = toRelativeUrl(originalUri || '/', window.location.origin);
+    navigate(rel.startsWith(base) ? rel.slice(base.length) || '/' : rel, { replace: true });
+  };
   return (
     <Security oktaAuth={oktaAuth} restoreOriginalUri={restoreOriginalUri}>
       <div className="shell">
@@ -61,5 +65,5 @@ function App() {
 }
 
 createRoot(document.getElementById('root')).render(
-  <BrowserRouter><App /></BrowserRouter>
+  <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}><App /></BrowserRouter>
 );

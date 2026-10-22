@@ -3,9 +3,12 @@ const { auth } = require('express-openid-connect');
 
 const PORT = +(process.env.PORT || 4102);
 const BASE_URL = process.env.PUBLIC_URL || `http://localhost:${PORT}`;
+// Hosted behind a path-routed preview the routes live under BASE_PATH (e.g. /preview/express-web).
+const BASE_PATH = (process.env.BASE_PATH || '/').replace(/\/$/, '');
 const app = express();
+const router = express.Router();
 
-app.use(auth({
+router.use(auth({
   issuerBaseURL: process.env.OKTA_ISSUER,
   clientID: process.env.OKTA_CLIENT_ID,
   clientSecret: process.env.OKTA_CLIENT_SECRET,
@@ -32,14 +35,15 @@ const page = (body) => `<!doctype html><html><head><meta charset="utf-8"><title>
   pre { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 10px; overflow: auto; font-size: 13px; max-height: 320px; }
 </style></head><body><div class="card"><span class="badge">express-openid-connect</span><h1>Okta Express</h1>${body}</div></body></html>`;
 
-app.get('/', (req, res) => {
+router.get('/', (req, res) => {
   if (!req.oidc.isAuthenticated()) {
     return res.send(page(`<p class="muted">You are signed out. Sign in to see the ID token claims.</p>
-      <a class="btn" href="/login">Sign in with Okta</a>`));
+      <a class="btn" href="${BASE_PATH}/login">Sign in with Okta</a>`));
   }
   const user = req.oidc.user;
   res.send(page(`<div class="row"><span class="status"><span class="dot"></span> Signed in${user.email ? ' as ' + esc(user.email) : ''}</span>
-    <a class="btn secondary" href="/logout">Sign out</a></div><pre>${esc(JSON.stringify(user, null, 2))}</pre>`));
+    <a class="btn secondary" href="${BASE_PATH}/logout">Sign out</a></div><pre>${esc(JSON.stringify(user, null, 2))}</pre>`));
 });
 
-app.listen(PORT, () => console.log(`Listening on http://localhost:${PORT}`));
+app.use(BASE_PATH || '/', router);
+app.listen(PORT, process.env.HOST || '0.0.0.0', () => console.log(`Listening on http://localhost:${PORT}`));

@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 
 const api = async (url, opts) => {
-  const r = await fetch(url, {
+  const r = await fetch(url.replace(/^\//, ''), {
     ...opts,
     headers: { 'Content-Type': 'application/json' },
     body: opts?.body && JSON.stringify(opts.body),

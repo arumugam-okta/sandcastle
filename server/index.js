@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { ownerOf, ownerSlug } from './auth.js';
 import { createRuntime } from './runtime/index.js';
 import { startGateway } from './gateway.js';
+import { createPreviewProxy, PREFIX } from './preview.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TEMPLATES = path.join(root, 'templates');
@@ -14,11 +15,13 @@ const WORKSPACES = process.env.WORKSPACES_DIR || path.join(root, 'workspaces');
 // Where the Docker daemon sees WORKSPACES (differs when this server itself runs in a container).
 const HOST_WORKSPACES = process.env.HOST_WORKSPACES || WORKSPACES;
 const API_PORT = +(process.env.PORT || 4100);
-const API_HOST = process.env.HOST || (process.env.RUNTIME === 'docker' ? '0.0.0.0' : '127.0.0.1');
+// PREVIEW_MODE=path: single-port hosting. Previews are served under /preview/<template>/ on this port.
+const PATH_MODE = process.env.PREVIEW_MODE === 'path';
+const PUBLIC_BASE = (process.env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
+const API_HOST = process.env.HOST || (process.env.RUNTIME === 'docker' || PATH_MODE ? '0.0.0.0' : '127.0.0.1');
 
 const runtime = createRuntime();
 const app = express();
-app.use(express.json());
 
 const readJson = (p) => JSON.parse(fs.readFileSync(p, 'utf8'));
 const templateIds = () =>
@@ -27,6 +30,19 @@ const getTemplate = (id) => {
   if (!templateIds().includes(id)) return null; // also blocks path traversal
   return readJson(path.join(TEMPLATES, id, 'template.json'));
 };
+
+const getTemplateSafe = (id) => (templateIds().includes(id) ? getTemplate(id) : null);
+const keyForOwner = (owner, t) => `${ownerSlug(owner)}-${t.id}`;
+const preview = PATH_MODE
+  ? createPreviewProxy({ getTemplate: getTemplateSafe, runtime, ownerOf, keyFor: keyForOwner })
+  : null;
+if (preview) app.use(PREFIX, (req, res) => { req.url = PREFIX.slice(0, -1) + req.url; preview.web(req, res); });
+app.get('/healthz', (_req, res) => res.send('ok'));
+app.use(express.json());
+
+// Redirect URI as the user must register it in Okta (path mode: under the hosted app's URL).
+const withRedirect = (t) =>
+  PATH_MODE ? { ...t, redirectUri: `${PUBLIC_BASE}/preview/${t.id}${new URL(t.redirectUri).pathname}` } : t;
 
 // Identify the caller (platform auth header) and attach their workspace helpers to the request.
 app.use('/api', (req, res, next) => {
@@ -42,7 +58,7 @@ app.use('/api', (req, res, next) => {
   };
   next();
 });
-const keyFor = (owner, t) => `${ownerSlug(owner)}-${t.id}`;
+const keyFor = keyForOwner;
 
 const parseEnv = (file) => {
   const out = {};
@@ -98,7 +114,7 @@ const listFiles = (dir, base = dir) =>
     return e.isDirectory() ? listFiles(p, base) : [path.relative(base, p)];
   });
 
-app.get('/api/templates', (_req, res) => res.json(templateIds().map(getTemplate)));
+app.get('/api/templates', (_req, res) => res.json(templateIds().map(getTemplate).map(withRedirect)));
 
 app.get('/api/workspaces/:id', async (req, res) => {
   const t = getTemplate(req.params.id);
@@ -112,7 +128,7 @@ app.get('/api/workspaces/:id', async (req, res) => {
     exists: fs.existsSync(ctx.wsDir(t.id)),
     status,
     log,
-    url: runtime.previewUrl(t),
+    url: PATH_MODE ? `${PUBLIC_BASE}/preview/${t.id}/` : runtime.previewUrl(t),
     values,
     files: listFiles(srcDir(ctx, t.id)),
   });
@@ -144,7 +160,7 @@ app.post('/api/workspaces/:id/start', async (req, res) => {
 
   try {
     await runtime.start({
-      key, t, dir, owner: ctx.owner,
+      key, t, dir, owner: ctx.owner, publicBase: PUBLIC_BASE,
       hostDir: path.join(HOST_WORKSPACES, ctx.slug, t.id),
     });
     res.json({ ok: true });
@@ -213,6 +229,11 @@ if (fs.existsSync(dist)) app.use(express.static(dist));
 fs.mkdirSync(WORKSPACES, { recursive: true });
 const server = app.listen(API_PORT, API_HOST, () =>
   console.log(`Control plane (${runtime.name} runtime) on http://${API_HOST}:${API_PORT}`));
+
+if (preview) server.on('upgrade', (req, socket, head) => {
+  if (!req.url.startsWith(PREFIX)) return socket.destroy();
+  preview.upgrade(req, socket, head);
+});
 
 // In docker mode the apps are not reachable directly, so the gateway serves each template's port.
 const gateways = runtime.name === 'docker'

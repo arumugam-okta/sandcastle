@@ -3,3 +3,5 @@ workspaces
 bundler
 dist
 .git
+SESSION_NOTES.md
+.env

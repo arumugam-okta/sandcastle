@@ -8,7 +8,7 @@ import { routes } from './app.routes';
 const oktaAuth = new OktaAuth({
   issuer: env.issuer,
   clientId: env.clientId,
-  redirectUri: window.location.origin + '/login/callback',
+  redirectUri: new URL('login/callback', document.baseURI).href,
   scopes: ['openid', 'profile', 'email'],
   pkce: true,
 });

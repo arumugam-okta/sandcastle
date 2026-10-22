@@ -14,13 +14,18 @@ Templates run on 4101 (React), 4102 (Express), 4103 (Angular).
 
 Workspaces and saved credentials live in `workspaces/<user>/` (git-ignored). SPA templates share credentials.
 
-## Hosted (Docker)
-`RUNTIME=docker` runs each user's workspace in its own container (`okta-tpl-<id>` images) behind a
-per-port gateway; the user comes from the platform's auth header (`AUTH_HEADER`, default `x-forwarded-user`).
-```sh
-npm run build:templates   # set NPM_REGISTRY for an internal mirror
-docker compose up --build
-```
+## Hosted (Okta app platform)
+One container, one port. The `Dockerfile` builds the launcher and runs the control plane with `PREVIEW_MODE=path`:
+each user's template runs as a child process on an internal port and is proxied under `/preview/<template>/`
+(WebSockets must be enabled for the app: `apps_set_websockets`). Users come from the gateway's `X-idDB-User-Email`
+header (`AUTH_HEADER` to override). Set `PUBLIC_BASE_URL` to the app's URL (no trailing slash); the launcher then shows
+redirect URIs like `<PUBLIC_BASE_URL>/preview/react-spa/login/callback` to register in Okta.
+Prefer the host-style app URL (`https://<app>.<tenant>.<TLD>`); the previews' absolute paths assume the app is at the root.
+Workspaces live in `/data/workspaces` (ephemeral unless a volume is mounted).
+
+## Hosted (Docker, multi-port)
+`RUNTIME=docker` runs each workspace in its own container behind per-port gateways (needs a Docker daemon).
+See `docker-compose.yml` and `scripts/build-templates.sh`; this mode is untested.
 
 ## Add a template
 Create `templates/<id>/` with a runnable project and a `template.json` (id, name, port, redirectUri, env fields,

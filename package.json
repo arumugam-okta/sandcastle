@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build": "vite build",
     "server": "node server/index.js",
     "start": "npx --yes concurrently -k \"npm run server\" \"npm run dev\"",
     "pkg": "node bin/pkg.js",

@@ -1,19 +1,24 @@
-# Control plane: builds the launcher UI and runs the API + preview gateway.
-FROM node:22-slim AS build
+# Hosted on the Okta app platform: one container, one port ($PORT, 8080). The control plane serves
+# the launcher UI + API and proxies each user's template process under /preview/<template>/.
+# Base image digest is the platform-audited wolfi-base (see apps_build_template).
+FROM cgr.dev/chainguard/wolfi-base@sha256:03c6561658909fc4eadd0b2dc717375df40a22cc05455b8f82f1f1974e7e4427 AS build
+RUN apk add --no-cache nodejs-24 npm
 WORKDIR /src
-COPY package*.json ./
+COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-RUN npx vite build
+RUN npm run build
 
-FROM node:22-slim
-COPY --from=docker:cli /usr/local/bin/docker /usr/local/bin/docker
+FROM cgr.dev/chainguard/wolfi-base@sha256:03c6561658909fc4eadd0b2dc717375df40a22cc05455b8f82f1f1974e7e4427
+RUN apk add --no-cache ca-certificates nodejs-24 npm
 WORKDIR /app
-COPY package*.json ./
+COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 COPY server ./server
 COPY templates ./templates
 COPY --from=build /src/dist ./dist
-ENV RUNTIME=docker WORKSPACES_DIR=/data/workspaces
-EXPOSE 4100 4101 4102 4103
+RUN mkdir -p /data/workspaces && chown -R nonroot:nonroot /data /app
+USER nonroot
+ENV PREVIEW_MODE=path PORT=8080 HOME=/tmp WORKSPACES_DIR=/data/workspaces
+EXPOSE 8080
 CMD ["node", "server/index.js"]

@@ -2,7 +2,7 @@
   "name": "angular-spa",
   "private": true,
   "scripts": {
-    "start": "node --env-file=.env scripts/gen-env.mjs && ng serve --host ${HOST:-localhost} --port ${PORT:-4103}"
+    "start": "node --env-file=.env scripts/gen-env.mjs && ng serve --host ${HOST:-localhost} --port ${PORT:-4103} --base-href ${BASE_PATH:-/} --serve-path ${BASE_PATH:-/}"
   },
   "dependencies": {
     "@angular/common": "^20.3.0",

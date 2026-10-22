@@ -12,3 +12,4 @@ workspaces/
 
 # cloned third-party bundler (build it with the steps in README)
 bundler/
+SESSION_NOTES.md
