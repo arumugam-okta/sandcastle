@@ -30,6 +30,8 @@ export function createPreviewProxy({ getTemplate, runtime, ownerOf, keyFor }) {
     },
     upgrade(req, socket, head) {
       const target = targetFor(req);
+      // Logged because the platform gateway may not stamp the identity header on WebSocket upgrades.
+      console.log(`ws upgrade ${req.url} user-header=${ownerOf(req) ? 'present' : 'missing'} target=${target ?? 'none'}`);
       if (!target) return socket.destroy();
       proxy.ws(req, socket, head, { target }, () => socket.destroy());
     },
