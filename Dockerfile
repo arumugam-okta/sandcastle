@@ -17,8 +17,10 @@ RUN npm ci --omit=dev
 COPY server ./server
 COPY templates ./templates
 COPY --from=build /src/dist ./dist
-RUN mkdir -p /data/workspaces && chown -R nonroot:nonroot /data /app
+RUN chown -R nonroot:nonroot /app
 USER nonroot
-ENV PREVIEW_MODE=path PORT=8080 HOME=/tmp WORKSPACES_DIR=/data/workspaces
+# The platform runs with a read-only root filesystem; only /tmp is writable (and ephemeral).
+# Workspaces, the npm cache and HOME all live there. Move WORKSPACES_DIR to a mounted volume to persist.
+ENV PREVIEW_MODE=path PORT=8080 HOME=/tmp WORKSPACES_DIR=/tmp/workspaces npm_config_cache=/tmp/.npm
 EXPOSE 8080
 CMD ["node", "server/index.js"]

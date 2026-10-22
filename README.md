@@ -21,7 +21,9 @@ each user's template runs as a child process on an internal port and is proxied 
 header (`AUTH_HEADER` to override). Set `PUBLIC_BASE_URL` to the app's URL (no trailing slash); the launcher then shows
 redirect URIs like `<PUBLIC_BASE_URL>/preview/react-spa/login/callback` to register in Okta.
 Prefer the host-style app URL (`https://<app>.<tenant>.<TLD>`); the previews' absolute paths assume the app is at the root.
-Workspaces live in `/data/workspaces` (ephemeral unless a volume is mounted).
+The platform's root filesystem is read-only, so workspaces live in `/tmp/workspaces` (ephemeral: saved credentials and
+edits are lost on restart/redeploy). To persist them, mount a volume and set `WORKSPACES_DIR` to its path. Note that
+adding a volume currently fails to deploy (the platform sends `rollingUpdate` with a `Recreate` strategy).
 
 ## Hosted (Docker, multi-port)
 `RUNTIME=docker` runs each workspace in its own container behind per-port gateways (needs a Docker daemon).
