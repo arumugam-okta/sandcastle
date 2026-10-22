@@ -1,0 +1,20 @@
+# Local test of the hosted setup. Build the template images first: ./scripts/build-templates.sh
+# The platform must give the control plane access to a Docker daemon (socket mounted below).
+services:
+  control-plane:
+    build: .
+    ports: ["4100:4100", "4101:4101", "4102:4102", "4103:4103"]
+    environment:
+      RUNTIME: docker
+      DOCKER_NETWORK: okta-net
+      HOST_WORKSPACES: ${PWD}/workspaces      # path of ./workspaces as seen by the Docker daemon
+      WS_USER: "0:0"                           # workspace containers must be able to write files created here
+      DEFAULT_USER: ${USER:-local}             # local stand-in for the platform's auth header
+      PREVIEW_BASE_URL: http://localhost
+    volumes:
+      - ./workspaces:/data/workspaces
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: [okta-net]
+networks:
+  okta-net:
+    name: okta-net

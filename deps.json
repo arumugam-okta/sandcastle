@@ -1,0 +1,21 @@
+{
+  "@babel/runtime": "7.29.10",
+  "@okta/okta-auth-js": "8.0.1",
+  "@okta/okta-react": "6.11.0",
+  "@remix-run/router": "1.19.0",
+  "broadcast-channel": "7.3.0",
+  "clone": "2.1.2",
+  "compare-versions": "4.1.4",
+  "eventemitter3": "4.0.7",
+  "js-cookie": "3.0.8",
+  "node-cache": "5.1.2",
+  "oblivious-set": "1.1.1",
+  "p-finally": "1.0.0",
+  "p-queue": "6.6.2",
+  "p-timeout": "3.2.0",
+  "react-router": "6.26.0",
+  "react-router-dom": "6.26.0",
+  "tiny-emitter": "2.1.0",
+  "unload": "2.4.1",
+  "events": "^3.3.0"
+}

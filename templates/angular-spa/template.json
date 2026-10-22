@@ -1,0 +1,22 @@
+{
+  "id": "angular-spa",
+  "name": "Angular SPA (PKCE)",
+  "description": "Okta Angular SDK, sign in with redirect. No client secret (SPA uses PKCE). Shares credentials with the other SPA templates.",
+  "port": 4103,
+  "redirectUri": "http://localhost:4103/login/callback",
+  "credentialGroup": "spa",
+  "env": [
+    {
+      "key": "OKTA_ISSUER",
+      "name": "issuer",
+      "label": "Issuer",
+      "placeholder": "https://{yourOktaDomain}/oauth2/default"
+    },
+    {
+      "key": "OKTA_CLIENT_ID",
+      "name": "clientId",
+      "label": "Client ID"
+    }
+  ],
+  "version": 1
+}

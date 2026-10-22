@@ -1,0 +1,14 @@
+node_modules
+dist
+.angular
+out-tsc
+*.log
+
+# per-user runtime data: workspaces hold .env files and saved Okta credentials
+workspaces/
+.env
+.credentials.json
+*.generated.ts
+
+# cloned third-party bundler (build it with the steps in README)
+bundler/

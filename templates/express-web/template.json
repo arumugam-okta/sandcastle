@@ -1,0 +1,27 @@
+{
+  "id": "express-web",
+  "name": "Express web app (client secret)",
+  "description": "Server-side OIDC login with a client secret, using express-openid-connect.",
+  "port": 4102,
+  "redirectUri": "http://localhost:4102/callback",
+  "env": [
+    {
+      "key": "OKTA_ISSUER",
+      "label": "Issuer",
+      "placeholder": "https://{yourOktaDomain}/oauth2/default",
+      "name": "issuer"
+    },
+    {
+      "key": "OKTA_CLIENT_ID",
+      "label": "Client ID",
+      "name": "clientId"
+    },
+    {
+      "key": "OKTA_CLIENT_SECRET",
+      "label": "Client secret",
+      "secret": true,
+      "name": "clientSecret"
+    }
+  ],
+  "version": 1
+}

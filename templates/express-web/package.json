@@ -1,0 +1,6 @@
+{
+  "name": "express-web",
+  "private": true,
+  "scripts": { "start": "node --env-file=.env server.js" },
+  "dependencies": { "express": "^4.21.0", "express-openid-connect": "^2.17.1" }
+}

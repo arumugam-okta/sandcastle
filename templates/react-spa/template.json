@@ -1,0 +1,22 @@
+{
+  "id": "react-spa",
+  "name": "React SPA (PKCE)",
+  "description": "Okta React SDK, sign in with redirect. No client secret (SPA uses PKCE).",
+  "port": 4101,
+  "redirectUri": "http://localhost:4101/login/callback",
+  "credentialGroup": "spa",
+  "env": [
+    {
+      "key": "VITE_OKTA_ISSUER",
+      "name": "issuer",
+      "label": "Issuer",
+      "placeholder": "https://{yourOktaDomain}/oauth2/default"
+    },
+    {
+      "key": "VITE_OKTA_CLIENT_ID",
+      "name": "clientId",
+      "label": "Client ID"
+    }
+  ],
+  "version": 1
+}

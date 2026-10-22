@@ -1,0 +1,25 @@
+{
+  "name": "angular-spa",
+  "private": true,
+  "scripts": {
+    "start": "node --env-file=.env scripts/gen-env.mjs && ng serve --host ${HOST:-localhost} --port ${PORT:-4103}"
+  },
+  "dependencies": {
+    "@angular/common": "^20.3.0",
+    "@angular/compiler": "^20.3.0",
+    "@angular/core": "^20.3.0",
+    "@angular/platform-browser": "^20.3.0",
+    "@angular/router": "^20.3.0",
+    "@okta/okta-angular": "^8.0.0",
+    "@okta/okta-auth-js": "^8.0.1",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.6.0",
+    "zone.js": "~0.15.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^20.3.0",
+    "@angular/cli": "^20.3.0",
+    "@angular/compiler-cli": "^20.3.0",
+    "typescript": "~5.8.3"
+  }
+}
